@@ -1,15 +1,18 @@
-import {useState, useEffect} from "react";
 import {Authenticator} from "@aws-amplify/ui-react";
-import { Amplify } from "aws-amplify";
+import { Amplify,  } from "aws-amplify";
 import "@aws-amplify/ui-react/styles.css";
-import { getUrl } from "aws-amplify/storage";
 import { generateClient } from "aws-amplify/data";
 import outputs from "../amplify_outputs.json";
 import { type Schema } from "../amplify/data/resource";
-import SupplyList, {ISupply} from "./components/supplies/SupplyList.tsx";
-import CreateSupplyModal from "./components/supplies/CreateSupplyModal.tsx";
-import {Button, Grid, IconButton, Typography} from "@mui/joy";
-import AddBoxIcon from '@mui/icons-material/AddBox';
+import SupplyList from "./components/supplies/SupplyList.tsx";
+import {Grid2} from "@mui/material";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Nav from "./components/Nav.tsx";
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
+import Calculators from "./components/calculators/Calculators.tsx";
+import Projects from "./components/projects/Projects.tsx";
+import Project from "./components/projects/Project.tsx";
 /**
  * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
  */
@@ -19,71 +22,57 @@ const client = generateClient<Schema>({
     authMode: "userPool",
 });
 
-
+const darkTheme = createTheme({
+    palette: {
+        mode: 'dark',
+    },
+});
 
 export default function App() {
-    const [supplies, setSupplies] = useState<ISupply[]>([]);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-
-    useEffect(() => {
-        (async () => {
-            await fetchSupplies();
-        })()
-    }, []);
-
-    async function fetchSupplies() {
-        const { data: supplies } = await client.models.Supply.list();
-        await Promise.all(
-            supplies.map(async (supply: ISupply) => {
-                if (supply.image) {
-                    const linkToStorageFile = await getUrl({
-                        path: ({ identityId }) => `media/${identityId}/${supply.image}`,
-                    });
-                    console.log(linkToStorageFile.url);
-                    supply.image = linkToStorageFile.url;
-                }
-                return supply;
-            })
-        );
-        setSupplies(supplies);
-    }
-
-    const deleteSupply = async (supply: ISupply)=> {
-        const {id} = supply
-        if(id) {
-            await client.models.Supply.delete({id});
-            await fetchSupplies();
-        }
-    }
-
-    const handleCreateModalClose = () => {
-        setIsCreateModalOpen(false);
-    }
-
-
     return (
         <Authenticator>
+
             {({ signOut }) => (
-                <Grid
-                    container
-                    className="App"
-                    justifyContent="center"
-                    alignItems="center"
-                    direction="column"
-                    spacing={4}
-                >
-                    <Grid><Typography level="h1">Magpie Supplies</Typography></Grid>
-                    <Grid>
-                        <IconButton onClick={() => setIsCreateModalOpen(true)}><AddBoxIcon/></IconButton>
-                    </Grid>
-                    <Grid><SupplyList supplies={supplies} deleteSupply={deleteSupply}/></Grid>
-                    <Grid><Button onClick={signOut}>Sign Out</Button></Grid>
+                <ThemeProvider theme={darkTheme}>
+                    <CssBaseline />
 
-                    <CreateSupplyModal isOpen={isCreateModalOpen} handleClose={handleCreateModalClose}/>
+                    <Grid2 container direction="row" sx={{maxWidth: '1600px', margin: '2em'}}>
+                        <Grid2 size={3} sx={{
+                            display: { xs: 'none', sm: 'block' },
+                        }}>
+                            <Nav signOut={() => signOut}/>
+                        </Grid2>
+                        <Grid2
+                            container
+                            className="App"
+                            justifyContent="center"
+                            alignItems="center"
+                            direction="column"
+                            spacing={4}
+                            size={{ xs: 12, sm: 9 }}
+                            sx={{marginTop: '4em'}}
+                        >
+                            <Router>
+                                <Routes>
+                                    <Route path="/supplies" element={<SupplyList client={client}/>} />
+                                </Routes>
+                                <Routes>
+                                    <Route path="/calculators" element={<Calculators/>} />
+                                </Routes>
+                                <Routes>
+                                    <Route path="/projects" element={<Projects client={client}/>} />
+                                </Routes>
+                                <Routes>
+                                    <Route path="/project/:id?" element={<Project client={client}/>} />
+                                </Routes>
+                            </Router>
 
 
-                </Grid>
+                        </Grid2>
+                    </Grid2>
+                </ThemeProvider>
             )}
+
         </Authenticator>
     );
 }

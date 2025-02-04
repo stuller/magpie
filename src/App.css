@@ -1,3 +1,20 @@
 #root {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+.logo {
+  width: 150px;
+  background-color: #98bcbc;
+  border-radius: 50%;
+  border: 1em solid #98bcbc;
+  margin: 2em auto;
+}
+
+.whitespace-fix {
+  white-space: pre-wrap; /* or pre-line */
+}
+
+.project-image {
+  height: 400px;
+  width: 400px;
+}

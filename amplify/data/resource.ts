@@ -13,10 +13,24 @@ const schema = a.schema({
       gauge: a.integer(),
       cost: a.float(),
       material: a.string(),
-      unit: a.string(),
+      units: a.integer(),
       image: a.string(),
-    })
-      .authorization((allow) => [allow.owner()]),
+      projectId: a.id(),
+      project: a.belongsTo('Project', 'projectId'),
+
+    }).authorization((allow) => [allow.owner()]),
+    Project: a
+      .model({
+        name: a.string(),
+        description: a.string(),
+        supplyCost: a.float(),
+        labor: a.integer(),
+        laborCost: a.float(),
+        price: a.float(),
+        units: a.integer(),
+        image: a.string(),
+        supplies: a.hasMany('Supply', 'projectId'),
+      }).authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
